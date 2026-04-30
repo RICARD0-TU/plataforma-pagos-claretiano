@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo | ClaretianPay</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Admin -->
+        <aside class="admin-sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h2>Admin Panel</h2>
+            </div>
+            
+            <nav class="admin-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="usuarios">
+                    <i class="fas fa-users"></i>
+                    <span>Gestión de Padres</span>
+                </a>
+                <a href="#" class="nav-item" data-page="estudiantes">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Gestión de Estudiantes</span>
+                </a>
+                <a href="#" class="nav-item" data-page="conceptos">
+                    <i class="fas fa-tags"></i>
+                    <span>Conceptos de Pago</span>
+                </a>
+                <a href="#" class="nav-item" data-page="deudas">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Gestión de Deudas</span>
+                </a>
+                <a href="#" class="nav-item" data-page="reportes">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reportes Globales</span>
+                </a>
+                <a href="#" class="nav-item logout-btn" onclick="cerrarSesion()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+            
+            <div class="admin-user">
+                <i class="fas fa-user-shield"></i>
+                <div>
+                    <p id="adminName">Administrador</p>
+                    <small>Administrador del sistema</small>
+                </div>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1 id="pageTitle">Dashboard Administrativo</h1>
+                    <p id="pageSubtitle">Panel de control general del sistema</p>
+                </div>
+                <div class="header-actions">
+                    <div class="date-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                    <button class="refresh-btn" onclick="cargarPaginaActual()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <div id="admin-content" class="admin-content">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando panel administrativo...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA CREAR/EDITAR USUARIO (PADRE) -->
+    <div id="modalUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalUsuarioTitle">Nuevo Padre de Familia</h2>
+                <span class="close-modal" onclick="cerrarModal('modalUsuario')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario">
+                    <input type="hidden" id="usuarioId">
+                    <div class="form-group">
+                        <label>Nombre completo</label>
+                        <input type="text" id="nombreCompleto" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="telefono">
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="direccion">
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR/EDITAR ESTUDIANTE -->
+    <div id="modalEstudiante" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalEstudianteTitle">Nuevo Estudiante</h2>
+                <span class="close-modal" onclick="cerrarModal('modalEstudiante')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formEstudiante">
+                    <input type="hidden" id="estudianteId">
+                    <div class="form-group">
+                        <label>Nombre completo</label>
+                        <input type="text" id="estNombreCompleto" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Padre de familia</label>
+                        <select id="usuarioId" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Grado</label>
+                        <input type="text" id="grado" placeholder="Ej: 5to" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sección</label>
+                        <input type="text" id="seccion" placeholder="Ej: A" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código de estudiante</label>
+                        <input type="text" id="codigoEstudiante" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR/EDITAR CONCEPTO -->
+    <div id="modalConcepto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalConceptoTitle">Nuevo Concepto de Pago</h2>
+                <span class="close-modal" onclick="cerrarModal('modalConcepto')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formConcepto">
+                    <input type="hidden" id="conceptoId">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto base</label>
+                        <input type="number" id="montoBase" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Periodicidad</label>
+                        <select id="periodicidad">
+                            <option value="MENSUAL">Mensual</option>
+                            <option value="TRIMESTRAL">Trimestral</option>
+                            <option value="ANUAL">Anual</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR DEUDA -->
+    <div id="modalDeuda" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrar Nueva Deuda</h2>
+                <span class="close-modal" onclick="cerrarModal('modalDeuda')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="formDeuda">
+                    <div class="form-group">
+                        <label>Estudiante</label>
+                        <select id="deudaEstudianteId" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Concepto de pago</label>
+                        <select id="conceptoPagoId" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto total</label>
+                        <input type="number" id="montoTotal" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de vencimiento</label>
+                        <input type="date" id="fechaVencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Año académico</label>
+                        <input type="number" id="anioAcademico" value="2024" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mes correspondiente</label>
+                        <select id="mesCorrespondiente">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Registrar Deuda</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER DETALLE DE DEUDA -->
+    <div id="modalDetalleDeuda" class="modal modal-large">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalle de Deuda</h2>
+                <span class="close-modal" onclick="cerrarModal('modalDetalleDeuda')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="detalleDeudaContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin/usuarios.js"></script>
+    <script src="/js/admin/estudiantes.js"></script>
+    <script src="/js/admin/conceptos.js"></script>
+    <script src="/js/admin/deudas.js"></script>
+    <script src="/js/admin/reportes.js"></script>
+    <script src="/js/admin/admin.js"></script>
+    <script>
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-PE', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!verificarRol('admin')) return;
+            const session = obtenerSesion();
+            if (session) document.getElementById('adminName').textContent = session.nombre;
+            cargarDashboardAdmin();
+        });
+    </script>
+</body>
+</html>
