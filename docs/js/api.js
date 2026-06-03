@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'https://plataforma-pagos-claretiano.onrender.com/api';
 
 const api = {
     async request(endpoint, method = 'GET', data = null) {
