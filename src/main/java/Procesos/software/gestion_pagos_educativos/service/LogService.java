@@ -19,7 +19,6 @@ public class LogService {
         log.setEntidad(entidad);
         log.setEntidadId(entidadId);
         log.setDetalles(detalles);
-        // ipOrigen se podría obtener del request
         logRepository.save(log);
     }
 }

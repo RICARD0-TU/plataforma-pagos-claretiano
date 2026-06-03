@@ -114,7 +114,7 @@ function renderUsuarios(usuarios) {
             </div>
         </div>
         
-        <button class="fab-button" onclick="abrirModalUsuario()">
+        <button class="fab-button" onclick="window.abrirModalNuevoPadre()">
             <i class="fas fa-plus"></i>
         </button>
     `;
@@ -364,39 +364,7 @@ async function verEstadoCuentaAdmin(estudianteId) {
     alert('Función de estado de cuenta en desarrollo');
 }
 
-function mostrarToastAdmin(mensaje, tipo) {
-    const toast = document.createElement('div');
-    toast.className = `toast-${tipo}`;
-    toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${mensaje}`;
-    toast.style.cssText = `position: fixed; bottom: 20px; right: 20px; background: ${tipo === 'success' ? '#10b981' : '#ef4444'}; color: white; padding: 12px 20px; border-radius: 12px; z-index: 9999; animation: fadeIn 0.3s;`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
 
-function mostrarLoadingAdmin() {
-    const content = document.getElementById('admin-content');
-    if (content) {
-        content.innerHTML = `
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <p>Cargando...</p>
-            </div>
-        `;
-    }
-}
-
-function mostrarErrorAdmin(mensaje) {
-    const content = document.getElementById('admin-content');
-    if (content) {
-        content.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ef4444;"></i>
-                <p>${mensaje}</p>
-                <button class="btn-primary" onclick="cargarUsuarios()">Reintentar</button>
-            </div>
-        `;
-    }
-}
 
 // ============================================
 // MODAL PREMIUM PARA NUEVO PADRE - VERSIÓN DEFINITIVA

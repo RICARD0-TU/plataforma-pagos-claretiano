@@ -2,6 +2,11 @@
 // GESTIÓN DE DEUDAS
 // ============================================
 
+window.cargarDeudasAdmin = cargarDeudasAdmin;
+window.abrirModalDeuda = abrirModalDeuda;
+window.verDetalleDeudaAdmin = verDetalleDeudaAdmin;
+window.filtrarDeudas = filtrarDeudas;
+
 let estudiantesList = [];
 let conceptosList = [];
 let deudasData = [];
@@ -64,24 +69,25 @@ function renderDeudasAdmin(deudas) {
                     <tr><th>ID</th><th>Estudiante</th><th>Concepto</th><th>Monto Total</th><th>Saldo</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody id="deudasTableBody">
-                    ${deudas.map(deuda => {
+                    ${deudas.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:40px;"><i class="fas fa-file-invoice" style="font-size:48px;color:#9ca3af;"></i><p>No hay deudas registradas</p></td></tr>' :
+                        deudas.map(deuda => {
                         const estudiante = estudiantesList.find(e => e.id === deuda.estudiante?.id);
                         const concepto = conceptosList.find(c => c.id === deuda.conceptoPago?.id);
                         return `<tr>
                             <td>${deuda.id}</td>
-                            <td>${estudiante?.nombreCompleto || 'N/A'}</strong></td>
-                            <td>${concepto?.nombre || 'N/A'}</strong></td>
-                            <td>${formatearMoneda(deuda.montoTotal)}</strong></td>
-                            <td>${formatearMoneda(deuda.saldoPendiente)}</strong></td>
-                            <td>${formatearFecha(deuda.fechaVencimiento)}</strong></td>
+                            <td>${estudiante?.nombreCompleto || 'N/A'}</td>
+                            <td>${concepto?.nombre || 'N/A'}</td>
+                            <td>${formatearMoneda(deuda.montoTotal)}</td>
+                            <td>${formatearMoneda(deuda.saldoPendiente)}</td>
+                            <td>${formatearFecha(deuda.fechaVencimiento)}</td>
                             <td><span class="badge ${deuda.estado === 'PAGADO' ? 'badge-paid' : deuda.estado === 'PARCIAL' ? 'badge-partial' : 'badge-pending'}">${deuda.estado}</span></td>
                             <td>
                                 <button class="btn-icon" onclick="verDetalleDeudaAdmin(${deuda.id})" style="color: #3b82f6;"><i class="fas fa-info-circle"></i></button>
-                            </strong>
+                            </td>
                         </tr>`;
                     }).join('')}
                 </tbody>
-            <table>
+            </table>
         </div>
         
         <button class="fab-button" onclick="abrirModalDeuda()"><i class="fas fa-plus"></i></button>
@@ -103,13 +109,13 @@ function filtrarDeudas() {
             const concepto = conceptosList.find(c => c.id === deuda.conceptoPago?.id);
             return `<tr>
                 <td>${deuda.id}</td>
-                <td>${estudiante?.nombreCompleto || 'N/A'}</strong></strong>
-                <td>${concepto?.nombre || 'N/A'}</strong></td>
-                <td>${formatearMoneda(deuda.montoTotal)}</strong></strong>
-                <td>${formatearMoneda(deuda.saldoPendiente)}</strong></strong>
-                <td>${formatearFecha(deuda.fechaVencimiento)}</strong></strong>
-                <td><span class="badge ${deuda.estado === 'PAGADO' ? 'badge-paid' : deuda.estado === 'PARCIAL' ? 'badge-partial' : 'badge-pending'}">${deuda.estado}</span></strong>
-                <td><button class="btn-icon" onclick="verDetalleDeudaAdmin(${deuda.id})" style="color: #3b82f6;"><i class="fas fa-info-circle"></i></button></strong>
+                <td>${estudiante?.nombreCompleto || 'N/A'}</td>
+                <td>${concepto?.nombre || 'N/A'}</td>
+                <td>${formatearMoneda(deuda.montoTotal)}</td>
+                <td>${formatearMoneda(deuda.saldoPendiente)}</td>
+                <td>${formatearFecha(deuda.fechaVencimiento)}</td>
+                <td><span class="badge ${deuda.estado === 'PAGADO' ? 'badge-paid' : deuda.estado === 'PARCIAL' ? 'badge-partial' : 'badge-pending'}">${deuda.estado}</span></td>
+                <td><button class="btn-icon" onclick="verDetalleDeudaAdmin(${deuda.id})" style="color: #3b82f6;"><i class="fas fa-info-circle"></i></button></td>
             </tr>`;
         }).join('');
     }

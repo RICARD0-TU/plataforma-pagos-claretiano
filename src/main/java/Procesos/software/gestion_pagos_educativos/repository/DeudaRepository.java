@@ -17,6 +17,8 @@ public interface DeudaRepository extends JpaRepository<Deuda, Long> {
 
     List<Deuda> findByEstado(String estado);
 
+    List<Deuda> findByEstadoNot(String estado);
+
     List<Deuda> findByFechaVencimientoBeforeAndEstadoNot(LocalDate fecha, String estado);
 
     @Query("SELECT SUM(d.saldoPendiente) FROM Deuda d WHERE d.estudiante.id = :estudianteId")

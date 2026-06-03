@@ -30,9 +30,8 @@ public class UsuarioController {
         if (usuario.isPresent()) {
             return ResponseEntity.ok(usuario.get());
         } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Usuario no encontrado"));
         }
     }
 
@@ -50,8 +49,19 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<?> crearUsuario(@RequestBody Usuario usuario) {
         try {
+            if (usuario.getEmail() == null || !usuario.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Correo electrónico inválido"));
+            }
+            if (usuario.getPassword() == null || usuario.getPassword().length() < 8) {
+                return ResponseEntity.badRequest().body(Map.of("error", "La contraseña debe tener al menos 8 caracteres"));
+            }
             Usuario nuevoUsuario = usuarioService.guardar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", nuevoUsuario.getId());
+            response.put("nombre", nuevoUsuario.getNombreCompleto());
+            response.put("email", nuevoUsuario.getEmail());
+            response.put("rol", nuevoUsuario.getRol());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -62,6 +72,19 @@ public class UsuarioController {
         try {
             Usuario actualizado = usuarioService.actualizar(id, usuario);
             return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> body) {
+        try {
+            Long id = Long.parseLong(body.get("id"));
+            String passwordActual = body.get("passwordActual");
+            String nuevaPassword = body.get("nuevaPassword");
+            usuarioService.cambiarPassword(id, passwordActual, nuevaPassword);
+            return ResponseEntity.ok(Map.of("mensaje", "Contraseña cambiada exitosamente"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

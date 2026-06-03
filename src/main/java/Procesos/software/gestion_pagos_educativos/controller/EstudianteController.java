@@ -24,13 +24,9 @@ public class EstudianteController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        try {
-            Estudiante estudiante = estudianteService.buscarPorId(id);
-            return ResponseEntity.ok(estudiante);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
-        }
+        return estudianteService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/usuario/{usuarioId}")
@@ -41,8 +37,8 @@ public class EstudianteController {
     @PostMapping
     public ResponseEntity<?> crearEstudiante(@RequestBody Estudiante estudiante) {
         try {
-            Estudiante nuevoEstudiante = estudianteService.guardar(estudiante);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoEstudiante);
+            Estudiante nuevo = estudianteService.guardar(estudiante);
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

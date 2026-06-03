@@ -1,20 +1,19 @@
-// ============================================
-// REPORTES GLOBALES
-// ============================================
+window.cargarReportesGlobales = cargarReportesGlobales;
+window.actualizarReporte = actualizarReporte;
+window.exportarExcel = exportarExcel;
 
 async function cargarReportesGlobales() {
     mostrarLoadingAdmin();
     try {
-        const [pagosReporte, deudasMorosas, estudiantes, conceptos] = await Promise.all([
-            api.getReportePagos(new Date().getFullYear()),
+        const [dashboard, deudasMorosas, estudiantes, conceptos, pagos] = await Promise.all([
+            api.getDashboard(),
             api.getDeudasMorosas(),
             api.getEstudiantes(),
-            api.getConceptosPago()
+            api.getConceptosPago(),
+            api.getPagos()
         ]);
-        
-        const totalRecaudado = pagosReporte?.totalRecaudado || 0;
-        
-        renderReportesGlobales({ pagosReporte, deudasMorosas, estudiantes, conceptos, totalRecaudado });
+
+        renderReportesGlobales({ dashboard, deudasMorosas, estudiantes, conceptos, pagos });
     } catch (error) {
         console.error('Error cargando reportes:', error);
         mostrarErrorAdmin('No se pudieron cargar los reportes');
@@ -23,50 +22,82 @@ async function cargarReportesGlobales() {
 
 function renderReportesGlobales(data) {
     const content = document.getElementById('admin-content');
-    
+    const { dashboard, deudasMorosas, estudiantes, conceptos, pagos } = data;
+
     content.innerHTML = `
         <div class="page-header">
             <h2><i class="fas fa-chart-line"></i> Reportes Globales</h2>
             <p>Análisis financiero y estadísticas del sistema</p>
         </div>
-        
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+            <div class="stat-card-admin">
+                <div class="stat-info">
+                    <div class="stat-label">Total Recaudado</div>
+                    <div class="stat-value">${formatearMoneda(dashboard.totalRecaudado || 0)}</div>
+                </div>
+                <div class="stat-icon-admin green"><i class="fas fa-dollar-sign"></i></div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-info">
+                    <div class="stat-label">Total Deuda</div>
+                    <div class="stat-value">${formatearMoneda(dashboard.totalDeuda || 0)}</div>
+                </div>
+                <div class="stat-icon-admin red"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-info">
+                    <div class="stat-label">Morosidad</div>
+                    <div class="stat-value">${dashboard.morosidad || 0}%</div>
+                </div>
+                <div class="stat-icon-admin orange"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-info">
+                    <div class="stat-label">Total Pagos</div>
+                    <div class="stat-value">${dashboard.totalPagos || 0}</div>
+                </div>
+                <div class="stat-icon-admin blue"><i class="fas fa-receipt"></i></div>
+            </div>
+        </div>
+
         <div class="reporte-filtros">
             <div class="filtros-row">
                 <div class="filtro-group">
-                    <label>Año</label>
-                    <select id="reporteAnio" onchange="actualizarReportePorAño()">
-                        <option value="2023">2023</option>
-                        <option value="2024" selected>2024</option>
-                        <option value="2025">2025</option>
+                    <label>Reporte</label>
+                    <select id="reporteSelector" onchange="actualizarReporte()">
+                        <option value="morosidad">Deudas Morosas</option>
+                        <option value="ingresos">Ingresos</option>
+                        <option value="estado">Estado de Cuenta Global</option>
+                    </select>
+                </div>
+                <div class="filtro-group" id="estudianteFilter" style="display:none;">
+                    <label>Estudiante</label>
+                    <select id="reporteEstudiante">
+                        <option value="">Todos</option>
+                        ${estudiantes.map(e => `<option value="${e.id}">${e.nombreCompleto}</option>`).join('')}
                     </select>
                 </div>
                 <div class="filtro-group">
-                    <label>Mes</label>
-                    <select id="reporteMes" onchange="actualizarReportePorAño()">
-                        <option value="">Todo el año</option>
-                        <option value="1">Enero</option><option value="2">Febrero</option>
-                        <option value="3">Marzo</option><option value="4">Abril</option>
-                        <option value="5">Mayo</option><option value="6">Junio</option>
-                        <option value="7">Julio</option><option value="8">Agosto</option>
-                        <option value="9">Septiembre</option><option value="10">Octubre</option>
-                        <option value="11">Noviembre</option><option value="12">Diciembre</option>
-                    </select>
+                    <label>Exportar</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-primary" onclick="exportarExcel()" style="font-size: 12px; padding: 8px 16px;">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="resumen-recaudado">
-            <h3>Total Recaudado</h3>
-            <div class="total">${formatearMoneda(data.totalRecaudado)}</div>
-        </div>
-        
-        <div class="reporte-resultados">
-            <h3>Deudas Morosas (más de 30 días)</h3>
+
+        <div id="reporteResultado" class="admin-table-container">
+            <div class="admin-table-header">
+                <h3>Deudas Morosas (más de 30 días)</h3>
+            </div>
             <table class="admin-table">
                 <thead><tr><th>ID</th><th>Estudiante</th><th>Concepto</th><th>Saldo</th><th>Vencimiento</th></tr></thead>
                 <tbody>
-                    ${data.deudasMorosas.length === 0 ? '<tr><td colspan="5">No hay deudas morosas</td></tr>' :
-                        data.deudasMorosas.map(d => `<tr>
+                    ${deudasMorosas.length === 0 ? '<tr><td colspan="5">No hay deudas morosas</td></tr>' :
+                        deudasMorosas.map(d => `<tr>
                             <td>${d.id}</td>
                             <td>${d.estudiante?.nombreCompleto || 'N/A'}</td>
                             <td>${d.conceptoPago?.nombre || 'N/A'}</td>
@@ -76,22 +107,95 @@ function renderReportesGlobales(data) {
                 </tbody>
             </table>
         </div>
+
+        <div class="charts-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+            <div class="admin-table-container">
+                <div class="admin-table-header"><h3>Pagos por Mes</h3></div>
+                <div style="padding: 20px; height: 300px;">
+                    <canvas id="chartReportePagos"></canvas>
+                </div>
+            </div>
+            <div class="admin-table-container">
+                <div class="admin-table-header"><h3>Deudas por Estado</h3></div>
+                <div style="padding: 20px; height: 300px;">
+                    <canvas id="chartReporteEstado"></canvas>
+                </div>
+            </div>
+        </div>
     `;
+
+    // Render charts
+    if (dashboard.pagosPorMes) {
+        const ctx = document.getElementById('chartReportePagos').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(dashboard.pagosPorMes),
+                datasets: [{
+                    label: 'Recaudado (S/)',
+                    data: Object.values(dashboard.pagosPorMes),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    if (dashboard.deudasPorEstado) {
+        const ctx2 = document.getElementById('chartReporteEstado').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(dashboard.deudasPorEstado),
+                datasets: [{
+                    data: Object.values(dashboard.deudasPorEstado),
+                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
 }
 
-async function actualizarReportePorAño() {
-    mostrarLoadingAdmin();
+function actualizarReporte() {
+    const tipo = document.getElementById('reporteSelector').value;
+    document.getElementById('estudianteFilter').style.display = tipo === 'estado' ? 'block' : 'none';
+}
+
+async function exportarExcel() {
+    mostrarToastAdmin('Exportando reporte...', 'success');
     try {
-        const anio = document.getElementById('reporteAnio').value;
-        const mes = document.getElementById('reporteMes').value;
-        
-        const pagos = await api.getPagos();
-        let pagosFiltrados = pagos.filter(p => new Date(p.fechaPago).getFullYear() === parseInt(anio));
-        if (mes) pagosFiltrados = pagosFiltrados.filter(p => new Date(p.fechaPago).getMonth() + 1 === parseInt(mes));
-        
-        const total = pagosFiltrados.reduce((sum, p) => sum + p.montoPagado, 0);
-        document.querySelector('.resumen-recaudado .total').innerHTML = formatearMoneda(total);
+        const now = new Date();
+        const inicio = new Date(now.getFullYear(), 0, 1).toISOString();
+        const fin = now.toISOString();
+        const session = obtenerSesion ? obtenerSesion() : null;
+        const response = await fetch(`http://localhost:8080/api/reportes/exportar/pagos?inicio=${inicio}&fin=${fin}`, {
+            headers: session && session.token ? { 'Authorization': 'Bearer ' + session.token } : {}
+        });
+        if (!response.ok) throw new Error('Error al exportar');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_pagos_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        mostrarToastAdmin('Reporte exportado exitosamente', 'success');
     } catch (error) {
-        console.error('Error:', error);
+        mostrarErrorAdmin('Error al exportar: ' + error.message);
     }
 }

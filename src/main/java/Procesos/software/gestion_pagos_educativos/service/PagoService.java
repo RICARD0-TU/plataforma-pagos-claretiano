@@ -22,7 +22,13 @@ public class PagoService {
     private ReciboRepository reciboRepository;
 
     @Autowired
+    private PdfService pdfService;
+
+    @Autowired
     private NotificacionService notificacionService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private LogService logService;
@@ -39,12 +45,17 @@ public class PagoService {
             throw new RuntimeException("Esta deuda ya está completamente pagada");
         }
 
-        // 3. Validar que el monto no exceda el saldo pendiente
+        // 3. Validar monto > 0
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El monto debe ser mayor a cero");
+        }
+
+        // 4. Validar que el monto no exceda el saldo pendiente
         if (monto.compareTo(deuda.getSaldoPendiente()) > 0) {
             throw new RuntimeException("El monto a pagar excede el saldo pendiente");
         }
 
-        // 4. Crear el pago
+        // 5. Crear el pago
         Pago pago = new Pago();
         pago.setDeuda(deuda);
         pago.setMontoPagado(monto);
@@ -54,17 +65,16 @@ public class PagoService {
 
         Pago pagoGuardado = pagoRepository.save(pago);
 
-        // 5. Actualizar el saldo de la deuda
+        // 6. Actualizar el saldo de la deuda
         deuda.actualizarSaldo(monto);
         deudaRepository.save(deuda);
 
-        // 6. Generar recibo
+        // 7. Generar recibo
         Recibo recibo = new Recibo();
         recibo.setPago(pagoGuardado);
         recibo.setNumeroRecibo(Recibo.generarNumeroRecibo());
         recibo.setMontoTotal(monto);
 
-        // Validar que el número de recibo sea único
         while (reciboRepository.existsByNumeroRecibo(recibo.getNumeroRecibo())) {
             recibo.setNumeroRecibo(Recibo.generarNumeroRecibo());
         }
@@ -72,7 +82,15 @@ public class PagoService {
         reciboRepository.save(recibo);
         pagoGuardado.setRecibo(recibo);
 
-        // 7. Crear notificación
+        // 8. Generar PDF del recibo
+        try {
+            byte[] pdfBytes = pdfService.generarReciboPdf(pagoGuardado);
+            System.out.println("PDF generado para recibo: " + recibo.getNumeroRecibo() + " (" + pdfBytes.length + " bytes)");
+        } catch (Exception e) {
+            System.err.println("Error al generar PDF: " + e.getMessage());
+        }
+
+        // 9. Crear notificación en la plataforma
         String nombreEstudiante = deuda.getEstudiante().getNombreCompleto();
         String mensajeNotificacion = String.format(
                 "Se ha registrado un pago de S/ %.2f para %s. Recibo: %s",
@@ -84,7 +102,16 @@ public class PagoService {
                 mensajeNotificacion,
                 "PAGO");
 
-        // 8. Registrar en log
+        // 10. Enviar email al padre
+        Usuario padre = deuda.getEstudiante().getUsuario();
+        emailService.enviarNotificacionPago(
+                padre.getEmail(),
+                nombreEstudiante,
+                String.format("%.2f", monto),
+                recibo.getNumeroRecibo()
+        );
+
+        // 11. Registrar en log
         logService.registrarLog(
                 "REALIZAR_PAGO",
                 "Pago",
@@ -110,5 +137,10 @@ public class PagoService {
         return pagos.stream()
                 .map(Pago::getMontoPagado)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Pago> listarTodos() {
+        return pagoRepository.findAll();
     }
 }

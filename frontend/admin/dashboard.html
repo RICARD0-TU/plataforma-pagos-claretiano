@@ -6,11 +6,12 @@
     <title>Panel Administrativo | ClaretianPay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar Admin -->
         <aside class="admin-sidebar">
             <div class="logo">
                 <div class="logo-icon">
@@ -18,7 +19,7 @@
                 </div>
                 <h2>Admin Panel</h2>
             </div>
-            
+
             <nav class="admin-nav">
                 <a href="#" class="nav-item active" data-page="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
@@ -44,12 +45,16 @@
                     <i class="fas fa-chart-line"></i>
                     <span>Reportes Globales</span>
                 </a>
+                <a href="#" class="nav-item" data-page="auditoria">
+                    <i class="fas fa-history"></i>
+                    <span>Auditoría</span>
+                </a>
                 <a href="#" class="nav-item logout-btn" onclick="cerrarSesion()">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Cerrar Sesión</span>
                 </a>
             </nav>
-            
+
             <div class="admin-user">
                 <i class="fas fa-user-shield"></i>
                 <div>
@@ -75,7 +80,7 @@
                     </button>
                 </div>
             </header>
-            
+
             <div id="admin-content" class="admin-content">
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
@@ -85,7 +90,7 @@
         </main>
     </div>
 
-    <!-- MODAL PARA CREAR/EDITAR USUARIO (PADRE) -->
+    <!-- MODALES -->
     <div id="modalUsuario" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -117,7 +122,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARA CREAR/EDITAR ESTUDIANTE -->
     <div id="modalEstudiante" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -153,7 +157,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARA CREAR/EDITAR CONCEPTO -->
     <div id="modalConcepto" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -189,7 +192,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARA CREAR DEUDA -->
     <div id="modalDeuda" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -241,7 +243,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARA VER DETALLE DE DEUDA -->
     <div id="modalDetalleDeuda" class="modal modal-large">
         <div class="modal-content">
             <div class="modal-header">
@@ -254,19 +255,31 @@
         </div>
     </div>
 
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/admin/usuarios.js"></script>
-    <script src="/js/admin/estudiantes.js"></script>
-    <script src="/js/admin/conceptos.js"></script>
-    <script src="/js/admin/deudas.js"></script>
-    <script src="/js/admin/reportes.js"></script>
-    <script src="/js/admin/admin.js"></script>
+    <div id="modalReciboAdmin" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Comprobante de Pago</h2>
+                <span class="close-modal" onclick="cerrarModal('modalReciboAdmin')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="reciboAdminContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin/usuarios.js"></script>
+    <script src="../js/admin/estudiantes.js"></script>
+    <script src="../js/admin/conceptos.js"></script>
+    <script src="../js/admin/deudas.js"></script>
+    <script src="../js/admin/reportes.js"></script>
+    <script src="../js/admin/admin.js"></script>
     <script>
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-PE', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             if (!verificarRol('admin')) return;
             const session = obtenerSesion();

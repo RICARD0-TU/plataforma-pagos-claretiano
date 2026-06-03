@@ -1,75 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Principal | ClaretianPay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <!-- ✅ CORREGIDO: la ruta correcta del CSS -->
-    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        /* Botón de cerrar sesión en el sidebar */
         .logout-btn {
             margin-top: auto;
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white !important;
         }
-
         .logout-btn:hover {
             background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
         }
-
-        .logout-btn i {
-            color: white !important;
+        .logout-btn i { color: white !important; }
+        .recibo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .recibo-header {
+            text-align: center;
+            border-bottom: 2px dashed #e5e7eb;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+        .recibo-header h3 { color: #10b981; margin: 8px 0 0; }
+        .recibo-body .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .recibo-body .row .label { color: #6b7280; }
+        .recibo-body .row .value { font-weight: 600; }
+        .recibo-footer {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed #e5e7eb;
         }
     </style>
 </head>
-
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
                 <h2>ClaretianPay</h2>
             </div>
-
             <nav class="nav-menu">
                 <a href="#" class="nav-item active" data-page="dashboard">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Dashboard</span>
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
                 </a>
                 <a href="#" class="nav-item" data-page="estudiantes">
-                    <i class="fas fa-users"></i>
-                    <span>Mis Hijos</span>
+                    <i class="fas fa-users"></i><span>Mis Hijos</span>
                 </a>
                 <a href="#" class="nav-item" data-page="deudas">
-                    <i class="fas fa-file-invoice"></i>
-                    <span>Deudas</span>
+                    <i class="fas fa-file-invoice"></i><span>Deudas</span>
                 </a>
-                <a href="#" class="nav-item" data-page="pagos">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Pagar</span>
+                <a href="#" class="nav-item" data-page="historial">
+                    <i class="fas fa-history"></i><span>Historial</span>
                 </a>
                 <a href="#" class="nav-item" data-page="reportes">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Reportes</span>
+                    <i class="fas fa-chart-line"></i><span>Reportes</span>
                 </a>
                 <a href="#" class="nav-item" data-page="notificaciones">
-                    <i class="fas fa-bell"></i>
-                    <span>Notificaciones</span>
+                    <i class="fas fa-bell"></i><span>Notificaciones</span>
                 </a>
                 <a href="#" class="nav-item logout-btn" onclick="cerrarSesion()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Cerrar Sesión</span>
+                    <i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span>
                 </a>
             </nav>
-
             <div class="user-info">
                 <i class="fas fa-user-circle"></i>
                 <div>
@@ -105,7 +114,6 @@
         </main>
     </div>
 
-    <!-- Modal de Pago - VERSIÓN CORRECTA -->
     <div id="modalPago" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -116,33 +124,27 @@
                 <form id="formPago">
                     <input type="hidden" id="deudaId">
                     <input type="hidden" id="montoTotal">
-
                     <div class="form-group">
-                        <label><i class="fas fa-tag"></i> Concepto</label>
-                        <input type="text" id="conceptoNombre" readonly style="background: #f3f4f6;">
+                        <label>Concepto</label>
+                        <input type="text" id="conceptoNombre" readonly style="background:#f3f4f6;">
                     </div>
-
                     <div class="form-group">
-                        <label><i class="fas fa-user-graduate"></i> Estudiante</label>
-                        <input type="text" id="estudianteNombre" readonly style="background: #f3f4f6;">
+                        <label>Estudiante</label>
+                        <input type="text" id="estudianteNombre" readonly style="background:#f3f4f6;">
                     </div>
-
                     <div class="form-group">
-                        <label><i class="fas fa-dollar-sign"></i> Monto a pagar</label>
-                        <input type="text" id="montoMostrar" readonly
-                            style="background: #f3f4f6; font-size: 24px; font-weight: bold; color: #10b981;">
+                        <label>Monto a pagar</label>
+                        <input type="text" id="montoMostrar" readonly style="background:#f3f4f6;font-size:24px;font-weight:bold;color:#10b981;">
                     </div>
-
                     <div class="form-group">
-                        <label><i class="fas fa-wallet"></i> Método de Pago</label>
+                        <label>Método de Pago</label>
                         <select id="metodoPago" required>
-                            <option value="EFECTIVO">💰 Efectivo</option>
-                            <option value="TRANSFERENCIA">🏦 Transferencia Bancaria</option>
-                            <option value="TARJETA">💳 Tarjeta de Crédito/Débito</option>
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                            <option value="TARJETA">Tarjeta de Crédito/Débito</option>
                         </select>
                     </div>
-
-                    <button type="submit" class="btn-primary" style="width: 100%;">
+                    <button type="submit" class="btn-primary" style="width:100%;">
                         <i class="fas fa-check-circle"></i> Confirmar Pago
                     </button>
                 </form>
@@ -151,10 +153,10 @@
     </div>
 
     <div id="modalRecibo" class="modal">
-        <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header">
                 <h2>Comprobante de Pago</h2>
-                <span class="close-modal">&times;</span>
+                <span class="close-modal" onclick="cerrarModales()">&times;</span>
             </div>
             <div class="modal-body">
                 <div id="reciboContent"></div>
@@ -162,26 +164,23 @@
         </div>
     </div>
 
-    <!-- ✅ SCRIPTS CORREGIDOS (sin duplicados) -->
-    <script src="/js/api.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
-        // Configurar nombre de usuario
         document.addEventListener('DOMContentLoaded', () => {
             const session = obtenerSesion();
             if (session) {
                 document.getElementById('userName').textContent = session.nombre;
             } else {
-                console.log('No hay sesión');
-                window.location.href = '/login.html';
+                window.location.href = '../login.html';
             }
         });
     </script>
-    <script src="/js/parent/estudiantes.js"></script>
-    <script src="/js/parent/deudas.js"></script>
-    <script src="/js/parent/pagos.js"></script>
-    <script src="/js/parent/notificaciones.js"></script>
-    <script src="/js/parent/main.js"></script>
+    <script src="../js/parent/estudiantes.js"></script>
+    <script src="../js/parent/deudas.js"></script>
+    <script src="../js/parent/pagos.js"></script>
+    <script src="../js/parent/historial.js"></script>
+    <script src="../js/parent/notificaciones.js"></script>
+    <script src="../js/parent/main.js"></script>
 </body>
-
 </html>

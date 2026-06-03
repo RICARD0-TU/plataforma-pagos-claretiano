@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EstudianteService {
@@ -24,9 +25,8 @@ public class EstudianteService {
     }
 
     @Transactional(readOnly = true)
-    public Estudiante buscarPorId(Long id) {
-        return estudianteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
+    public Optional<Estudiante> buscarPorId(Long id) {
+        return estudianteRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
@@ -36,14 +36,12 @@ public class EstudianteService {
 
     @Transactional
     public Estudiante guardar(Estudiante estudiante) {
-        // Verificar que el usuario existe
         if (estudiante.getUsuario() != null && estudiante.getUsuario().getId() != null) {
             Usuario usuario = usuarioRepository.findById(estudiante.getUsuario().getId())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             estudiante.setUsuario(usuario);
         }
 
-        // Validar código único
         if (estudiante.getCodigoEstudiante() != null) {
             estudianteRepository.findByCodigoEstudiante(estudiante.getCodigoEstudiante())
                     .ifPresent(e -> {
@@ -56,7 +54,8 @@ public class EstudianteService {
 
     @Transactional
     public Estudiante actualizar(Long id, Estudiante estudianteActualizado) {
-        Estudiante estudiante = buscarPorId(id);
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
 
         estudiante.setNombreCompleto(estudianteActualizado.getNombreCompleto());
         estudiante.setGrado(estudianteActualizado.getGrado());
@@ -71,7 +70,8 @@ public class EstudianteService {
 
     @Transactional
     public void eliminar(Long id) {
-        Estudiante estudiante = buscarPorId(id);
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
         estudiante.setActivo(false);
         estudianteRepository.save(estudiante);
     }

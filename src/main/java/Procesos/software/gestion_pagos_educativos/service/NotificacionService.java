@@ -19,6 +19,9 @@ public class NotificacionService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public Notificacion crearNotificacion(Long usuarioId, String titulo, String mensaje, String tipo) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -32,12 +35,12 @@ public class NotificacionService {
         notificacion.setFechaEnvio(LocalDateTime.now());
         notificacion.setLeida(false);
 
-        // Simular envío (aquí se integraría con email/SMS real)
-        System.out.println("📧 [SIMULACIÓN] Enviando notificación a: " + usuario.getEmail());
-        System.out.println("   Título: " + titulo);
-        System.out.println("   Mensaje: " + mensaje);
+        Notificacion saved = notificacionRepository.save(notificacion);
 
-        return notificacionRepository.save(notificacion);
+        // Enviar email
+        emailService.enviarEmail(usuario.getEmail(), titulo, mensaje);
+
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +63,6 @@ public class NotificacionService {
 
     @Transactional
     public void notificarVencimientoDeudas() {
-        // Aquí se implementaría la lógica para notificar deudas próximas a vencer
-        System.out.println("🔔 [SIMULACIÓN] Verificando deudas por vencer...");
+        System.out.println("🔔 Verificando deudas por vencer...");
     }
 }

@@ -1,9 +1,9 @@
-// service/UsuarioService.java
 package Procesos.software.gestion_pagos_educativos.service;
 
 import Procesos.software.gestion_pagos_educativos.model.entity.Usuario;
 import Procesos.software.gestion_pagos_educativos.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -14,6 +14,12 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private LogService logService;
 
     @Transactional(readOnly = true)
     public List<Usuario> listarTodos() {
@@ -35,7 +41,13 @@ public class UsuarioService {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new RuntimeException("Ya existe un usuario con ese email");
         }
-        return usuarioRepository.save(usuario);
+        if (usuario.getPassword() != null && !usuario.getPassword().startsWith("$2a$")) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        }
+        usuario.setRol(usuario.getRol() != null ? usuario.getRol() : "parent");
+        Usuario saved = usuarioRepository.save(usuario);
+        logService.registrarLog("CREAR", "Usuario", saved.getId(), "Creación de usuario: " + saved.getEmail());
+        return saved;
     }
 
     @Transactional
@@ -47,7 +59,17 @@ public class UsuarioService {
         usuario.setTelefono(usuarioActualizado.getTelefono());
         usuario.setDireccion(usuarioActualizado.getDireccion());
 
-        return usuarioRepository.save(usuario);
+        if (usuarioActualizado.getEmail() != null
+                && !usuarioActualizado.getEmail().equals(usuario.getEmail())) {
+            if (usuarioRepository.existsByEmail(usuarioActualizado.getEmail())) {
+                throw new RuntimeException("Ya existe un usuario con ese email");
+            }
+            usuario.setEmail(usuarioActualizado.getEmail());
+        }
+
+        Usuario saved = usuarioRepository.save(usuario);
+        logService.registrarLog("EDITAR", "Usuario", id, "Actualización de datos");
+        return saved;
     }
 
     @Transactional
@@ -56,5 +78,24 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
+        logService.registrarLog("ELIMINAR", "Usuario", id, "Desactivación de usuario");
+    }
+
+    @Transactional
+    public void cambiarPassword(Long id, String passwordActual, String nuevaPassword) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(passwordActual, usuario.getPassword())) {
+            throw new RuntimeException("La contraseña actual no es correcta");
+        }
+
+        if (nuevaPassword == null || nuevaPassword.length() < 8) {
+            throw new RuntimeException("La nueva contraseña debe tener al menos 8 caracteres");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+        usuarioRepository.save(usuario);
+        logService.registrarLog("CAMBIAR_PASSWORD", "Usuario", id, "Cambio de contraseña");
     }
 }

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class DetalleDeudaDTO {
+    private Long id;
     private String concepto;
     private BigDecimal montoTotal;
     private BigDecimal montoPagado;
@@ -11,55 +12,21 @@ public class DetalleDeudaDTO {
     private LocalDate fechaVencimiento;
     private String estado;
 
-    // Constructores, getters y setters
     public DetalleDeudaDTO() {
     }
 
-    public String getConcepto() {
-        return concepto;
-    }
-
-    public void setConcepto(String concepto) {
-        this.concepto = concepto;
-    }
-
-    public BigDecimal getMontoTotal() {
-        return montoTotal;
-    }
-
-    public void setMontoTotal(BigDecimal montoTotal) {
-        this.montoTotal = montoTotal;
-    }
-
-    public BigDecimal getMontoPagado() {
-        return montoPagado;
-    }
-
-    public void setMontoPagado(BigDecimal montoPagado) {
-        this.montoPagado = montoPagado;
-    }
-
-    public BigDecimal getSaldo() {
-        return saldo;
-    }
-
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
-    }
-
-    public LocalDate getFechaVencimiento() {
-        return fechaVencimiento;
-    }
-
-    public void setFechaVencimiento(LocalDate fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getConcepto() { return concepto; }
+    public void setConcepto(String concepto) { this.concepto = concepto; }
+    public BigDecimal getMontoTotal() { return montoTotal; }
+    public void setMontoTotal(BigDecimal montoTotal) { this.montoTotal = montoTotal; }
+    public BigDecimal getMontoPagado() { return montoPagado; }
+    public void setMontoPagado(BigDecimal montoPagado) { this.montoPagado = montoPagado; }
+    public BigDecimal getSaldo() { return saldo; }
+    public void setSaldo(BigDecimal saldo) { this.saldo = saldo; }
+    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
+    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 }

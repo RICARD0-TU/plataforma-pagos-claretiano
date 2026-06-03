@@ -1,8 +1,3 @@
-// ============================================
-// MAIN - CONTROLADOR PRINCIPAL PARENT
-// ============================================
-
-// Función de formateo global
 window.cargarDeudasPendientes = cargarDeudasPendientes;
 window.formatearMoneda = function (monto) {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(monto || 0);
@@ -13,7 +8,6 @@ window.formatearFecha = function (fecha) {
     return new Date(fecha).toLocaleDateString('es-PE');
 };
 
-// Función global de loading
 window.mostrarLoading = function () {
     const contentArea = document.getElementById('content-area');
     if (contentArea) {
@@ -27,11 +21,19 @@ window.mostrarLoading = function () {
 };
 
 window.mostrarError = function (mensaje) {
-    // Crear toast de error
     const toast = document.createElement('div');
     toast.className = 'toast-error';
     toast.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensaje}`;
-    toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 12px 20px; border-radius: 12px; z-index: 9999;';
+    toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 12px 20px; border-radius: 12px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.2);';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+};
+
+window.mostrarToast = function (mensaje, tipo) {
+    const toast = document.createElement('div');
+    toast.className = `toast-${tipo}`;
+    toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${mensaje}`;
+    toast.style.cssText = `position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 12px; z-index: 9999; animation: fadeIn 0.3s; ${tipo === 'success' ? 'background: #10b981;' : 'background: #ef4444;'} color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.2);`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 };
@@ -61,7 +63,7 @@ function initNavigation() {
                 dashboard: 'Bienvenido de vuelta',
                 estudiantes: 'Gestiona la información de tus hijos',
                 deudas: 'Consulta y gestiona las deudas pendientes',
-                pagos: 'Realiza pagos de manera rápida y segura',
+                historial: 'Consulta el historial completo de tus pagos',
                 reportes: 'Visualiza reportes detallados',
                 notificaciones: 'Mantente informado de todo'
             };
@@ -70,30 +72,24 @@ function initNavigation() {
                 subtitleElement.textContent = subtitles[page] || 'Gestión de pagos escolares';
             }
 
-            // Llamar a la función correspondiente
             switch (page) {
                 case 'dashboard':
                     window.cargarDashboard();
                     break;
                 case 'estudiantes':
                     if (typeof cargarEstudiantes === 'function') cargarEstudiantes();
-                    else console.error('cargarEstudiantes no está definida');
                     break;
                 case 'deudas':
                     if (typeof cargarDeudasPendientes === 'function') cargarDeudasPendientes();
-                    else console.error('cargarDeudasPendientes no está definida');
                     break;
-                case 'pagos':
-                    if (typeof cargarDeudasPendientes === 'function') cargarDeudasPendientes();
-                    else console.error('cargarDeudasPendientes no está definida');
+                case 'historial':
+                    if (typeof cargarHistorial === 'function') cargarHistorial();
                     break;
                 case 'reportes':
                     if (typeof cargarEstudiantes === 'function') cargarEstudiantes();
-                    else console.error('cargarEstudiantes no está definida');
                     break;
                 case 'notificaciones':
                     if (typeof cargarNotificaciones === 'function') cargarNotificaciones();
-                    else console.error('cargarNotificaciones no está definida');
                     break;
             }
         });
@@ -102,28 +98,20 @@ function initNavigation() {
 
 window.cargarDashboard = async function () {
     if (typeof window.mostrarLoading === 'function') window.mostrarLoading();
-    else mostrarLoading();
 
     try {
         const session = obtenerSesion();
         const usuarioId = session?.id;
 
         if (!usuarioId) {
-            if (typeof window.mostrarError === 'function') window.mostrarError('Sesión no válida');
-            else mostrarError('Sesión no válida');
-            return;
-        }
-
-        // Verificar que las funciones existan
-        if (typeof api === 'undefined') {
-            console.error('API no cargada');
+            window.mostrarError('Sesión no válida');
             return;
         }
 
         const estudiantes = await api.getEstudiantesByUsuario(usuarioId);
-        const todasDeudas = await api.getDeudasPendientes();
         const estudianteIds = estudiantes.map(e => e.id);
-        const deudasPendientes = todasDeudas.filter(d => estudianteIds.includes(d.estudiante?.id));
+        const todasDeudas = await api.getDeudas();
+        const deudasPendientes = todasDeudas.filter(d => estudianteIds.includes(d.estudiante?.id) && d.saldoPendiente > 0);
         const notificaciones = await api.getNotificacionesNoLeidas(usuarioId);
 
         let totalDeuda = 0;
@@ -157,20 +145,23 @@ window.cargarDashboard = async function () {
                         <div class="stat-label">Notificaciones nuevas</div>
                     </div>
                 </div>
-                
+
                 <div class="table-container" style="margin-top: 32px;">
                     <div class="table-header">
                         <h3><i class="fas fa-bolt"></i> Acciones rápidas</h3>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; padding: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 24px;">
                         <button class="btn-primary" onclick="window.cambiarPagina('deudas')" style="justify-content: center;">
                             <i class="fas fa-credit-card"></i> Realizar Pago
                         </button>
+                        <button class="btn-outline" onclick="window.cambiarPagina('historial')" style="justify-content: center;">
+                            <i class="fas fa-history"></i> Ver Historial
+                        </button>
                         <button class="btn-outline" onclick="window.cambiarPagina('notificaciones')" style="justify-content: center;">
-                            <i class="fas fa-bell"></i> Ver Notificaciones
+                            <i class="fas fa-bell"></i> Notificaciones
                         </button>
                         <button class="btn-outline" onclick="window.cambiarPagina('estudiantes')" style="justify-content: center;">
-                            <i class="fas fa-users"></i> Ver Mis Hijos
+                            <i class="fas fa-users"></i> Mis Hijos
                         </button>
                     </div>
                 </div>
@@ -178,16 +169,13 @@ window.cargarDashboard = async function () {
         }
     } catch (error) {
         console.error('Error cargando dashboard:', error);
-        if (typeof window.mostrarError === 'function') window.mostrarError('No se pudo cargar el dashboard');
-        else mostrarError('No se pudo cargar el dashboard');
+        window.mostrarError('No se pudo cargar el dashboard');
     }
 };
 
 window.cambiarPagina = function (page) {
     const navItem = document.querySelector(`.nav-menu .nav-item[data-page="${page}"]`);
-    if (navItem) {
-        navItem.click();
-    }
+    if (navItem) navItem.click();
 };
 
 window.cargarDatosIniciales = function () {
@@ -212,11 +200,7 @@ window.actualizarContadorNotificaciones = async function () {
     }
 };
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM cargado, inicializando...');
-
-    // Configurar nombre de usuario
     const session = obtenerSesion();
     const userNameSpan = document.getElementById('userName');
     if (session && userNameSpan) {

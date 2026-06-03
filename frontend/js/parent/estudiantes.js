@@ -153,7 +153,7 @@ function renderEstadoCuenta(estado) {
                             <td class="${deuda.saldo > 0 ? 'text-danger' : 'text-success'}">${formatearMoneda(deuda.saldo)}</td>
                             <td>${formatearFecha(deuda.fechaVencimiento)}</td>
                             <td><span class="badge ${deuda.estado === 'PAGADO' ? 'badge-paid' : 'badge-pending'}">${deuda.estado}</span></td>
-                            <td>${deuda.saldo > 0 ? `<button class="btn-pagar" onclick="abrirModalPago(${deuda.id}, ${deuda.saldoPendiente})">Pagar S/ ${formatearMoneda(deuda.saldoPendiente)}</button>` : '✓ Pagado'}</td>
+                            <td>${deuda.saldo > 0 ? `<button class="btn-pagar" onclick="window.abrirModalPago(${deuda.id}, ${deuda.saldo})">Pagar ${formatearMoneda(deuda.saldo)}</button>` : '✓ Pagado'}</td>
                         </tr>
                     `).join('')}
                 </tbody>

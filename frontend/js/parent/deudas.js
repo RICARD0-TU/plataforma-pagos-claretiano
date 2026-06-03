@@ -260,14 +260,14 @@ async function confirmarPagoPremium() {
             referencia: `PAG-${Date.now()}`
         });
 
-        // Mostrar mensaje de éxito
-        alert('✅ ¡Pago realizado con éxito!');
+        window.mostrarToast('Pago realizado con éxito', 'success');
         cerrarModalPagoPremium();
-        location.reload();
+        setTimeout(() => location.reload(), 1000);
 
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Error al procesar el pago: ' + (error.message || 'Intente nuevamente'));
+        const errorMsg = (error.message || '').includes('{') ? 'Error al procesar el pago' : error.message || 'Error al procesar el pago';
+        window.mostrarToast(errorMsg, 'error');
         if (confirmBtn) {
             confirmBtn.disabled = false;
             confirmBtn.innerHTML = originalText;
