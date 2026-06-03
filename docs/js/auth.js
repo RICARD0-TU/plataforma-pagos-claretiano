@@ -1,4 +1,4 @@
-const API_AUTH_URL = 'http://localhost:8080/api/auth';
+const API_AUTH_URL = 'https://plataforma-pagos-claretiano.onrender.com/api/auth';
 
 async function login(email, password) {
     const btn = document.getElementById('loginBtn');
